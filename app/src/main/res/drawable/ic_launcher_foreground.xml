@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- empty upper glass -->
+    <path
+        android:fillColor="#552A5A8C"
+        android:pathData="M54,22 L66,34 L66,74 L54,86 L42,74 L42,34 Z"
+        android:strokeColor="#CCBFEFFF"
+        android:strokeWidth="1.5" />
+    <!-- liquid filling from the bottom -->
+    <path
+        android:fillColor="#FF1E90D6"
+        android:pathData="M42,56 L66,56 L66,74 L54,86 L42,74 Z" />
+    <path
+        android:fillColor="#FF8FF3FF"
+        android:pathData="M42,55 L66,55 L66,57.5 L42,57.5 Z" />
+    <!-- facets -->
+    <path
+        android:fillColor="#30FFFFFF"
+        android:pathData="M54,22 L42,34 L42,74 L54,86 Z" />
+    <path
+        android:pathData="M54,22 L54,86"
+        android:strokeColor="#66FFFFFF"
+        android:strokeWidth="1" />
+</vector>

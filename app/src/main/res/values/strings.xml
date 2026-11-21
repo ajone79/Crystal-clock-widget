@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Crystal Clock</string>
+    <string name="widget_name">Crystal Clock</string>
+    <string name="widget_description">Twelve crystals fill through the hour, one every five minutes.</string>
+</resources>
