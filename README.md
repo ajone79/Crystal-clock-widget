@@ -1,11 +1,11 @@
 # Crystal Clock
 
-An Android home-screen widget: a ring of 12 crystals around the time. Each crystal is 5 minutes. The crystals fill up (or drain) through the hour, and a small diamond outside the ring marks the hour.
+A clock for Android, inspired by the crystal clock in the PS2 system menu. Twelve hexagonal crystal rods form the face of an analog clock. The rod for the current hour is full of liquid at the top of the hour and drains as the minutes pass. As a live wallpaper, the whole ring turns once a minute and seven orbs swirl in the middle, gathering into groups on round seconds. It also comes as a home-screen widget.
 
 <p>
-<img src="docs/preview.png" width="240" alt="Aqua crystals filling, 10:23">
-<img src="docs/amethyst.png" width="240" alt="Amethyst crystals draining, 3:41">
-<img src="docs/ruby.png" width="240" alt="Ruby crystals filling, 8:07">
+<img src="docs/prism_wallpaper.png" width="200" alt="Live wallpaper">
+<img src="docs/prism_wallpaper_30s.png" width="200" alt="Live wallpaper at 30 seconds">
+<img src="docs/prism_widget.png" width="240" alt="Widget">
 </p>
 
 ## Install on your phone
@@ -16,7 +16,8 @@ An Android home-screen widget: a ring of 12 crystals around the time. Each cryst
 4. If asked, tap **Settings**, turn on **Allow from this source**, then go back.
 5. Tap **Install**.
 6. Open the **Crystal Clock** app.
-7. Tap **Add widget to home screen**, then tap **Add**.
+7. Tap **Set as live wallpaper**, then tap **Set wallpaper**.
+8. Tap **Add widget to home screen**, then tap **Add** (optional).
 
 ## Add the widget by hand
 
@@ -29,10 +30,11 @@ An Android home-screen widget: a ring of 12 crystals around the time. Each cryst
 ## Change the look
 
 1. Tap the widget (or open the Crystal Clock app).
-2. Pick **Fill up**, **Drain**, or **Fill one hour, drain the next**.
-3. Pick a colour: Aqua, Amethyst, Ruby, Emerald, or Amber.
-4. Turn the dark background on or off.
-5. Tap **Play a demo hour** to watch it run.
+2. Pick a style: **Crystal rods** (3D) or **Gem ring** (flat, one gem per 5 minutes).
+3. Pick **Drain**, **Fill up**, or **Fill one hour, drain the next**.
+4. Pick a colour: Aqua, Amethyst, Ruby, Emerald, or Amber.
+5. Turn the widget's dark background and time on or off.
+6. Tap **Play a demo** to watch two hours in 10 seconds.
 
 ## Update to a newer build
 

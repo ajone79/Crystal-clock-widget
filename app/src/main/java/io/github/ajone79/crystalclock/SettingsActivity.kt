@@ -1,16 +1,15 @@
 package io.github.ajone79.crystalclock
 
 import android.app.Activity
+import android.app.WallpaperManager
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.view.Gravity
+import android.os.SystemClock
 import android.view.View
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -18,14 +17,11 @@ import android.widget.ScrollView
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
-import java.util.Calendar
 
 class SettingsActivity : Activity() {
 
     private lateinit var prefs: Prefs
-    private lateinit var preview: ImageView
-    private val handler = Handler(Looper.getMainLooper())
-    private var demoStep = -1
+    private lateinit var preview: PreviewView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,19 +41,35 @@ class SettingsActivity : Activity() {
 
         col.addView(label("Crystal Clock", big = true))
 
-        preview = ImageView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (260 * dp).toInt())
+        preview = PreviewView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (340 * dp).toInt())
         }
         col.addView(preview)
 
         col.addView(Button(this).apply {
-            text = "Play a demo hour"
-            setOnClickListener { startDemo() }
+            text = "Play a demo (2 hours in 10 seconds)"
+            setOnClickListener { preview.demoStartedAt = SystemClock.elapsedRealtime() }
         })
 
-        col.addView(label("Crystals"))
+        col.addView(Button(this).apply {
+            text = "Set as live wallpaper"
+            setOnClickListener { setWallpaper() }
+        })
+
+        col.addView(Button(this).apply {
+            text = "Add widget to home screen"
+            setOnClickListener { pinWidget() }
+        })
+
+        col.addView(label("Style"))
         col.addView(radioGroup(
-            listOf("fill" to "Fill up through the hour", "drain" to "Drain through the hour", "alternate" to "Fill one hour, drain the next"),
+            listOf("prism" to "Crystal rods (3D, like the PS2 menu)", "gems" to "Gem ring (one gem per 5 minutes)"),
+            prefs.style,
+        ) { prefs.style = it })
+
+        col.addView(label("Liquid"))
+        col.addView(radioGroup(
+            listOf("drain" to "Drain through the hour", "fill" to "Fill up through the hour", "alternate" to "Fill one hour, drain the next"),
             prefs.mode,
         ) { prefs.mode = it })
 
@@ -68,25 +80,27 @@ class SettingsActivity : Activity() {
         ) { prefs.palette = it })
 
         col.addView(Switch(this).apply {
-            text = "Dark background behind the ring"
+            text = "Dark background behind the widget"
             isChecked = prefs.backdrop
             setTextColor(Color.WHITE)
             setPadding(0, (20 * dp).toInt(), 0, 0)
             setOnCheckedChangeListener { _, on -> prefs.backdrop = on; changed() }
         })
 
-        col.addView(Button(this).apply {
-            text = "Add widget to home screen"
-            setOnClickListener { pinWidget() }
+        col.addView(Switch(this).apply {
+            text = "Show the time and date on the widget"
+            isChecked = prefs.showTime
+            setTextColor(Color.WHITE)
+            setPadding(0, (16 * dp).toInt(), 0, 0)
+            setOnCheckedChangeListener { _, on -> prefs.showTime = on; changed() }
         })
 
-        col.addView(label("Or: long-press your home screen, tap Widgets, find Crystal Clock, and drag it out. Tap the widget any time to come back here."))
+        col.addView(label("The live wallpaper is the full animated clock: the ring turns once a minute and seven orbs swirl in the middle. The widget shows a still frame that updates every minute. Tap the widget to come back here."))
 
         setContentView(ScrollView(this).apply {
-            setBackgroundColor(Color.rgb(10, 12, 20))
+            setBackgroundColor(Color.rgb(6, 8, 16))
             addView(col)
         })
-        drawPreview()
     }
 
     private fun radioGroup(options: List<Pair<String, String>>, current: String, onPick: (String) -> Unit): RadioGroup {
@@ -108,30 +122,23 @@ class SettingsActivity : Activity() {
     }
 
     private fun changed() {
-        drawPreview()
+        preview.invalidate()
         CrystalClockWidget.updateAll(this)
     }
 
-    private fun drawPreview(minute: Float? = null, hour: Int? = null) {
-        val now = Calendar.getInstance()
-        val m = minute ?: (now.get(Calendar.MINUTE) + now.get(Calendar.SECOND) / 60f)
-        val h = hour ?: now.get(Calendar.HOUR_OF_DAY)
-        preview.setImageBitmap(CrystalRenderer.render(720, m, h, prefs.mode, prefs.palette, prefs.backdrop))
-    }
-
-    /** Runs two hours in about 8 seconds so you can see fill and drain. */
-    private fun startDemo() {
-        handler.removeCallbacksAndMessages(null)
-        demoStep = 0
-        val tick = object : Runnable {
-            override fun run() {
-                if (demoStep > 240) { demoStep = -1; drawPreview(); return }
-                drawPreview(minute = (demoStep % 120) / 2f, hour = demoStep / 120)
-                demoStep++
-                handler.postDelayed(this, 33)
+    private fun setWallpaper() {
+        val component = ComponentName(this, PrismWallpaper::class.java)
+        val direct = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER)
+            .putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, component)
+        try {
+            startActivity(direct)
+        } catch (e: Exception) {
+            try {
+                startActivity(Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER))
+            } catch (e2: Exception) {
+                Toast.makeText(this, "Long-press your home screen, tap Wallpapers, and pick Crystal Clock.", Toast.LENGTH_LONG).show()
             }
         }
-        handler.post(tick)
     }
 
     private fun pinWidget() {
@@ -139,12 +146,7 @@ class SettingsActivity : Activity() {
         if (mgr.isRequestPinAppWidgetSupported) {
             mgr.requestPinAppWidget(ComponentName(this, CrystalClockWidget::class.java), null, null)
         } else {
-            Toast.makeText(this, "Your launcher can't do this. Long-press the home screen and pick Widgets.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Long-press the home screen and pick Widgets.", Toast.LENGTH_LONG).show()
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        handler.removeCallbacksAndMessages(null)
     }
 }

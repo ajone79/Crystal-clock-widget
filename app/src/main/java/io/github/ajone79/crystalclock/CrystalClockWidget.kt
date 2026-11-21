@@ -7,9 +7,12 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.os.Build
 import android.os.Bundle
 import android.util.TypedValue
+import android.view.View
 import android.widget.RemoteViews
 import java.util.Calendar
 
@@ -56,10 +59,7 @@ class CrystalClockWidget : AppWidgetProvider() {
             val prefs = Prefs(context)
             val now = Calendar.getInstance()
             val minute = now.get(Calendar.MINUTE) + now.get(Calendar.SECOND) / 60f
-            val bmp = CrystalRenderer.render(
-                BITMAP_PX, minute, now.get(Calendar.HOUR_OF_DAY),
-                prefs.mode, prefs.palette, prefs.backdrop,
-            )
+            val bmp = renderFrame(prefs, BITMAP_PX, minute, now.get(Calendar.HOUR_OF_DAY))
             val open = PendingIntent.getActivity(
                 context, 0, Intent(context, SettingsActivity::class.java),
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
@@ -75,9 +75,26 @@ class CrystalClockWidget : AppWidgetProvider() {
                 views.setImageViewBitmap(R.id.ring, bmp)
                 views.setTextViewTextSize(R.id.time, TypedValue.COMPLEX_UNIT_DIP, side * 0.17f)
                 views.setTextViewTextSize(R.id.date, TypedValue.COMPLEX_UNIT_DIP, side * 0.058f)
+                views.setViewVisibility(R.id.labels, if (prefs.showTime) View.VISIBLE else View.GONE)
                 views.setOnClickPendingIntent(R.id.root, open)
                 manager.updateAppWidget(id, views)
             }
+        }
+
+        /** One still frame of the chosen style, used by the widget and the settings preview. */
+        fun renderFrame(prefs: Prefs, sizePx: Int, minute: Float, hour24: Int): Bitmap {
+            if (prefs.style == "gems") {
+                return CrystalRenderer.render(sizePx, minute, hour24, prefs.mode, prefs.palette, prefs.backdrop)
+            }
+            val bmp = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+            PrismRenderer.draw(
+                Canvas(bmp), sizePx, sizePx,
+                secondOfMinute = 0f, minuteOfHour = minute, hour24 = hour24,
+                mode = prefs.mode, paletteKey = prefs.palette,
+                tSec = 0f, animate = false,
+                fullBackground = false, backdrop = prefs.backdrop,
+            )
+            return bmp
         }
 
         private fun tickIntent(context: Context): PendingIntent = PendingIntent.getBroadcast(
